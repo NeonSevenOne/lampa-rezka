@@ -1,58 +1,41 @@
 (function () {
     'use strict';
 
-    function RezkaAgPlugin() {
-        var host = 'https://rezka.ag';
+    // Реєстрація плагіна в Lampa
+    Lampa.Plugins.add('rezka_only', {
+        title: 'HDRezka UA',
+        description: 'Контент з Rezka.ag',
+        icon: 'https://rezka.ag/favicon.ico',
+        version: '1.0.0',
+        author: 'Neonsevenone',
+        onInit: function () {
+            console.log('Rezka plugin initialized');
+        }
+    });
 
-        this.init = function () {
-            Lampa.Listener.follow('app', function (e) {
-                if (e.type == 'ready') {
-                    // Фіксація налаштувань для дзеркала Rezka
-                    Lampa.Storage.set('online_mod_rezka', 'true');
-                    Lampa.Storage.set('rezka_mirror', host);
-                }
-            });
+    // Додавання кнопки "Rezka UA" на сторінку кожної стрічки
+    Lampa.Listener.follow('full', function (e) {
+        if (e.type === 'complite') {
+            var render = e.object.activity.render();
+            var movie = e.data.movie;
 
-            // Підключення онлайн-модуля Rezka
-            if (window.lampa_settings && window.lampa_settings.online) {
-                Lampa.Component.add('online_rezka', function (object) {
-                    var comp = new Lampa.InteractionMain(object);
-                    
-                    comp.create = function () {
-                        this.activity.loader(true);
-                        var self = this;
-                        
-                        var title = object.movie.title || object.movie.name;
-                        var search_url = host + '/engine/ajax/search.php';
+            if (!render.find('.button--rezka-only').length) {
+                var button = $(
+                    '<div class="full-start__button selector button--rezka-only">' +
+                        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                            '<polygon points="5 3 19 12 5 21 5 3"></polygon>' +
+                        '</svg>' +
+                        '<span>Rezka UA</span>' +
+                    '</div>'
+                );
 
-                        $.ajax({
-                            url: search_url,
-                            type: 'POST',
-                            data: { q: title },
-                            dataType: 'html',
-                            success: function (data) {
-                                self.activity.loader(false);
-                                if (data) {
-                                    self.append($(data));
-                                } else {
-                                    self.empty('Нічого не знайдено на Rezka.ag');
-                                }
-                            },
-                            error: function () {
-                                self.activity.loader(false);
-                                self.empty('Помилка з\'єднання з Rezka.ag. Перевірте дзеркало або MSX.');
-                            }
-                        });
-                    };
-                    return comp;
+                button.on('hover:enter', function () {
+                    var title = movie.title || movie.name;
+                    Lampa.Noty.show('Запит до Rezka: ' + title);
                 });
-            }
-        };
-    }
 
-    if (!window.plugin_rezka_ag_ready) {
-        window.plugin_rezka_ag_ready = true;
-        var plugin = new RezkaAgPlugin();
-        plugin.init();
-    }
+                render.find('.full-start__buttons').append(button);
+            }
+        }
+    });
 })();
