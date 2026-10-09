@@ -1,19 +1,17 @@
 (function () {
     'use strict';
 
-    // Реєстрація плагіна в Lampa
     Lampa.Plugins.add('rezka_only', {
         title: 'HDRezka UA',
-        description: 'Контент з Rezka.ag',
+        description: 'Пошук та перегляд з Rezka.ag',
         icon: 'https://rezka.ag/favicon.ico',
-        version: '1.0.0',
+        version: '1.0.1',
         author: 'Neonsevenone',
         onInit: function () {
-            console.log('Rezka plugin initialized');
+            console.log('Rezka plugin loaded');
         }
     });
 
-    // Додавання кнопки "Rezka UA" на сторінку кожної стрічки
     Lampa.Listener.follow('full', function (e) {
         if (e.type === 'complite') {
             var render = e.object.activity.render();
@@ -30,8 +28,9 @@
                 );
 
                 button.on('hover:enter', function () {
-                    var title = movie.title || movie.name;
-                    Lampa.Noty.show('Запит до Rezka: ' + title);
+                    // Беремо оригінальну назву (напр. англійську) або звичайну
+                    var searchQuery = movie.original_title || movie.title || movie.name;
+                    Lampa.Noty.show('Шукаємо на Rezka: ' + searchQuery);
                 });
 
                 render.find('.full-start__buttons').append(button);
